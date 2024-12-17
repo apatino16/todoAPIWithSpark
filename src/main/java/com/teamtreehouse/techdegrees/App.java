@@ -10,6 +10,7 @@ public class App {
         staticFileLocation("/public");
 
         get("/blah", (req, res) -> "Hello!");
+        // Comment
 
     }
 
