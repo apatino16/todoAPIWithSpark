@@ -4,6 +4,7 @@ package com.teamtreehouse.techdegrees;
 import com.google.gson.Gson;
 import com.teamtreehouse.techdegrees.dao.Sql2oTodoDao;
 import com.teamtreehouse.techdegrees.dao.TodoDao;
+import com.teamtreehouse.techdegrees.model.Todo;
 import org.sql2o.Sql2o;
 
 import static spark.Spark.*;
@@ -28,10 +29,18 @@ public class Api {
     }
 
     private static void routes(TodoDao todoDao, Gson gson){
-        // Get All todos
-        get("/api/v1/todos", (req, res) -> {
-            return gson.toJson(new )
-        })
+        // Route that fetches all todos from the database
+        get("/api/v1/todos", "application/json", (req, res) -> todoDao.findAll(), gson::toJson);
+
+        // Route to add new todo to the database
+        post("/api/v1/todos", "application/json", (req, res) -> {
+            Todo todo = gson.fromJson(req.body(), Todo.class);
+            todoDao.add(todo);
+            res.status(201); // Created
+            return todo;
+        }, gson::toJson); // method reference
+
+        after((req, res) -> res.type("application.json"));
     }
 
 }
