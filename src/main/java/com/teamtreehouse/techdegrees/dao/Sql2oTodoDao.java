@@ -23,7 +23,7 @@ public class Sql2oTodoDao implements TodoDao {
 
         // Try-with-resources: open a new database connection and automatically closes the connection after execution
         try (Connection con = sql2o.open()) {
-            int id = (int) con.createQuery(sql)
+            int id = (int) con.createQuery(sql, true)
                     .bind(todo) // streamline the process of binding data to SQL query parameters
                     .executeUpdate()
                     .getKey();
@@ -35,7 +35,7 @@ public class Sql2oTodoDao implements TodoDao {
 
     // Update a todo
     @Override
-    public void updateTodo(int id, String name, boolean isCompleted) {
+    public void updateTodo(int id, String name, boolean isCompleted) throws DaoException {
         String sql = "UPDATE todos SET name = :name, isCompleted = :isCompleted WHERE id = :id";
 
         try (Connection con = sql2o.open()) {

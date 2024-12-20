@@ -7,11 +7,9 @@ import java.util.List;
 
 public interface TodoDao {
     void add(Todo todo) throws DaoException;
-    void updateTodo(int id, String name, boolean isCompleted);
+    void updateTodo(int id, String name, boolean isCompleted) throws Exception;
     void deleteTodo(int id);
 
     List<Todo> findAll();
     Todo findByTodoId(int id);
-
-
 }
