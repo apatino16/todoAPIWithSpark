@@ -57,5 +57,9 @@ public class Sql2oTodoDaoTest {
         assertEquals(0, dao.findAll().size());
     }
 
+    @Test
+    public void existingTodosCanBeFoundById() throws Exception {
+
+    }
 
 }

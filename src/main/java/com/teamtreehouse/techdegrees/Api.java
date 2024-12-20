@@ -28,7 +28,7 @@ public class Api {
         routes(todoDao, gson);
     }
 
-    private static void routes(TodoDao todoDao, Gson gson){
+    private static void routes(TodoDao todoDao, Gson gson) {
         // Route that fetches all todos from the database
         get("/api/v1/todos", "application/json", (req, res) -> todoDao.findAll(), gson::toJson);
 
@@ -43,4 +43,20 @@ public class Api {
         after((req, res) -> res.type("application.json"));
     }
 
+    // Updating Existing todo
+        put("/api/v1/todos/:id", "application/json", (req, res) -> {
+            int id = Integer.parseInt(req.params(":id"));
+            Todo updatedTodo = TodoDao.findByTodoId();
+            Todo result = TodoDao.updateTodo(id, updatedTodo);
+
+                if (result != null) {
+                    res.status(200); // ok
+                    return "Todo updated successfully";
+                } else {
+                    res.status(404); // Not found
+                    return "Todo not found";
+                }
+
+            },gson::toJson);
+        }
 }
