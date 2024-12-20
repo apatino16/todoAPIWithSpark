@@ -8,9 +8,10 @@ import org.sql2o.Sql2o;
 
 import static spark.Spark.*;
 
-public class App {
+public class Api {
 
     public static void main(String[] args) {
+        Sql2o sql2o = new Sql2o("jdbc:h2:~/todo.db;INIT=RUNSCRIPT from 'classpath:db/init.sql");
         staticFileLocation("/public");
 
         // JSON transformation
@@ -27,7 +28,10 @@ public class App {
     }
 
     private static void routes(TodoDao todoDao, Gson gson){
-        
+        // Get All todos
+        get("/api/v1/todos", (req, res) -> {
+            return gson.toJson(new )
+        })
     }
 
 }
