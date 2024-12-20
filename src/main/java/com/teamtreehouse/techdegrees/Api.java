@@ -35,7 +35,7 @@ public class Api {
         // Route that fetches all todos from the database
         get("/api/v1/todos", "application/json", (req, res) -> {
             try {
-                return gson.toJson(todoDao.findAll());
+                return todoDao.findAll();
             } catch (Exception e) {
                 res.status(500); // Internal Server Error
                 res.type("application/json");
