@@ -43,25 +43,41 @@ public class Api {
         after((req, res) -> res.type("application.json"));
 
         // Updating existing todo
-        put("/api/v1/todos/:id","application/json",(req, res) -> {
+        put("/api/v1/todos/:id", "application/json", (req, res) -> {
 
-                int id = Integer.parseInt(req.params(":id"));
-                Todo updatedTodo = gson.fromJson(req.body(), Todo.class);
+            int id = Integer.parseInt(req.params(":id"));
+            Todo updatedTodo = gson.fromJson(req.body(), Todo.class);
 
-                // fallback
-                Todo existingTodo = todoDao.findByTodoId(id);
+            // fallback
+            Todo existingTodo = todoDao.findByTodoId(id);
 
-                if (existingTodo == null) {
-                    res.status(400); // Not Found
-                    return "Todo not found";
-                }
+            if (existingTodo == null) {
+                res.status(404); // Not Found
+                return "Todo not found";
+            }
 
-                // Update todo with new values
-                if (updatedTodo.getName() != null) existingTodo.setName(updatedTodo.getName());
-                if (updatedTodo.isCompleted() != existingTodo.isCompleted()) existingTodo.setCompleted(updatedTodo.isCompleted());
+            // Update todo with new values
+            if (updatedTodo.getName() != null) existingTodo.setName(updatedTodo.getName());
+            if (updatedTodo.isCompleted() != existingTodo.isCompleted())
+                existingTodo.setCompleted(updatedTodo.isCompleted());
 
-                res.status(200); // ok
-                return "Todo updated successfully";
-            }, gson::toJson);
-        }
+            res.status(200); // ok
+            return "Todo updated successfully";
+        }, gson::toJson);
+
+        // Route to delete a todo from the database
+        delete("/api/v1/todos/:id", "application/json", (req, res) -> {
+            int id = Integer.parseInt(req.params(":id"));
+            Todo todo = todoDao.findByTodoId(id);
+
+            if (todo != null) {
+                todoDao.deleteTodo(id);
+                res.status(204); // No Content
+                return "";
+            } else {
+                res.status(404); // Not Found
+                return "Todo not found";
+            }
+        });
+    }
 }
