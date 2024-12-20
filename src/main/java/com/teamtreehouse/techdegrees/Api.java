@@ -41,22 +41,27 @@ public class Api {
         }, gson::toJson); // method reference
 
         after((req, res) -> res.type("application.json"));
-    }
 
-    // Updating Existing todo
-        put("/api/v1/todos/:id", "application/json", (req, res) -> {
-            int id = Integer.parseInt(req.params(":id"));
-            Todo updatedTodo = TodoDao.findByTodoId();
-            Todo result = TodoDao.updateTodo(id, updatedTodo);
+        // Updating existing todo
+        put("/api/v1/todos/:id","application/json",(req, res) -> {
 
-                if (result != null) {
-                    res.status(200); // ok
-                    return "Todo updated successfully";
-                } else {
-                    res.status(404); // Not found
+                int id = Integer.parseInt(req.params(":id"));
+                Todo updatedTodo = gson.fromJson(req.body(), Todo.class);
+
+                // fallback
+                Todo existingTodo = todoDao.findByTodoId(id);
+
+                if (existingTodo == null) {
+                    res.status(400); // Not Found
                     return "Todo not found";
                 }
 
-            },gson::toJson);
+                // Update todo with new values
+                if (updatedTodo.getName() != null) existingTodo.setName(updatedTodo.getName());
+                if (updatedTodo.isCompleted() != existingTodo.isCompleted()) existingTodo.setCompleted(updatedTodo.isCompleted());
+
+                res.status(200); // ok
+                return "Todo updated successfully";
+            }, gson::toJson);
         }
 }
