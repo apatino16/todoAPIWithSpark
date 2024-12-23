@@ -70,6 +70,18 @@ class TodoTest {
 
     }
 
+    @Test
+    void testEqualsShouldReturnFalseForDifferentAttributes() {
+        Todo todo1 = new Todo("Test", true);
+        todo1.setId(1);
+
+        Todo todo2 = new Todo("Test", false);
+        todo2.setId(2);
+
+        assertNotEquals(todo1, todo2, "Two todos with different id, name, and completion status should return false.");
+
+    }
+
     // Test hash code generation
     @Test
     void testHashCode() {
