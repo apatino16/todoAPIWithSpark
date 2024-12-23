@@ -29,6 +29,7 @@ public class Api {
 
         // Setup Routes
         routes(todoDao, gson);
+
     }
 
     private static void routes(TodoDao todoDao, Gson gson) {
