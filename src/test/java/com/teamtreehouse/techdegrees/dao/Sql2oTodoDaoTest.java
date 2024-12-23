@@ -51,14 +51,12 @@ public class Sql2oTodoDaoTest {
             fail("Should not throw exception during add: " + e.getMessage());
         }
     }
-/*
 
     @Test
     public void addedTodosAreReturnedFromFindAll() throws  Exception{
         // Arrange
         Todo todo1 = new Todo("Test1", true);
         Todo todo2 = new Todo("Test2", false);
-
 
         // Act
         dao.add(todo1);
@@ -69,17 +67,43 @@ public class Sql2oTodoDaoTest {
     }
 
     @Test
-    public void noTodosReturnsEmptyList() {
+    public void updatingTodoChangesValues() throws DaoException {
+        Todo todo = new Todo("Finish Project", false);
+
+        dao.add(todo);
+
+        todo.setName("Finish Project now");
+        todo.setCompleted(true);
+
+        dao.updateTodo(todo.getId(), todo.getName(), todo.isCompleted());
+
+        Todo updated = dao.findByTodoId(todo.getId());
+
+        assertEquals("Finish Project now", updated.getName());
+
+        assertTrue(updated.isCompleted());
+    }
+
+    @Test
+    public void deletingTodoRemovesIt() throws DaoException {
+        Todo todo = new Todo("Finish Project", false);
+        dao.add(todo);
+
+        dao.deleteTodo(todo.getId());
+
         assertEquals(0, dao.findAll().size());
     }
 
     @Test
-    public void existingTodosCanBeFoundById() {
+    public void findTodoByIdReturnsCorrectTodo() throws Exception {
+        Todo todo = new Todo("Finish Project", false);
+        dao.add(todo);
+
+        Todo found = dao.findByTodoId(todo.getId());
+
+        assertNotNull(found);
+        assertEquals(todo.getName(), found.getName());
+        assertEquals(todo.isCompleted(), found.isCompleted());
 
     }
-
- */
-
-
-
 }
