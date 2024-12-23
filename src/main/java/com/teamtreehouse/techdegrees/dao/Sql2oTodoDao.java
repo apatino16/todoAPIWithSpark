@@ -23,13 +23,18 @@ public class Sql2oTodoDao implements TodoDao {
 
         // Try-with-resources: open a new database connection and automatically closes the connection after execution
         try (Connection con = sql2o.open()) {
-            int id = (int) con.createQuery(sql, true)
-                    .bind(todo) // streamline the process of binding data to SQL query parameters
+            Integer id = (Integer) con.createQuery(sql, true)
+                    .addParameter("name", todo.getName())
+                    .addParameter("isCompleted", todo.isCompleted())
                     .executeUpdate()
                     .getKey();
-            todo.setId(id); // syncs Java object with database
+            if (id != null) {
+                todo.setId(id); // syncs Java object with database
+            } else {
+                throw new DaoException("No ID generated for the Todo");
+            }
         } catch (Sql2oException e) {
-            throw new DaoException(e, "Problem adding todo");
+            throw new DaoException("Problem adding todo");
         }
     }
 
