@@ -38,11 +38,10 @@ public class Sql2oTodoDao implements TodoDao {
         }
     }
 
-    // Update a todo
+    // Update a to-do
     @Override
     public void updateTodo(int id, String name, boolean isCompleted) throws DaoException {
         String sql = "UPDATE todos SET name = :name, isCompleted = :isCompleted WHERE id = :id";
-
         try (Connection con = sql2o.open()) {
             con.createQuery(sql)
                     .addParameter("id", id)
@@ -52,11 +51,10 @@ public class Sql2oTodoDao implements TodoDao {
         }
     }
 
-    // Delete a todo
+    // Delete a to-do
     @Override
     public void deleteTodo(int id) {
         String sql = "DELETE FROM todos WHERE id = :id";
-
         try (Connection con = sql2o.open()) {
             con.createQuery(sql)
                     .addParameter("id", id)
@@ -68,13 +66,12 @@ public class Sql2oTodoDao implements TodoDao {
     @Override
     public List<Todo> findAll() {
         String sql = "SELECT * FROM todos";
-
         try (Connection con = sql2o.open()) {
             return con.createQuery(sql).executeAndFetch(Todo.class);
         }
     }
 
-    // Find a todo by ID
+    // Find a to-do by ID
     @Override
     public Todo findByTodoId(int id) {
         String sql = "SELECT * FROM todos WHERE id = :id";
