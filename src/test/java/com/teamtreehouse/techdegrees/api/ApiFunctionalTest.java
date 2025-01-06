@@ -1,109 +1,137 @@
 package com.teamtreehouse.techdegrees.api;
 
 import com.google.gson.Gson;
+import com.teamtreehouse.techdegrees.Api;
+
+import com.teamtreehouse.techdegrees.dao.Sql2oTodoDao;
 import com.teamtreehouse.techdegrees.model.Todo;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.teamtreehouse.techdegrees.testing.ApiClient;
+import com.teamtreehouse.techdegrees.testing.ApiResponse;
+import org.junit.jupiter.api.*;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+import spark.Spark;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 public class ApiFunctionalTest {
 
-    private Connection con;
+    public static final String PORT = "4568";
+    public static final String TEST_DATASOURCE = "jdbc:h2:mem:testing";
+    private Connection conn;
+    private ApiClient client;
+    private Gson gson;
+    private Sql2oTodoDao todoDao;
+
+    @BeforeAll
+    public static void startServer() throws Exception {
+        String[] args = {PORT, TEST_DATASOURCE};
+        Api.main(args);
+    }
+
+    @AfterAll
+    public static void stopServer() throws Exception {
+        Spark.stop();
+    }
 
     @BeforeEach
-    public void setUp() {
-        // Setup the database with H2 in memory and create tables
-        String connectionString = "jdbc:h2:mem:testing;DB_CLOSE_DELAY=-1;";
-
-        Sql2o sql2o = new Sql2o(connectionString, null, null);
-
-        // Keep connection open through entire test so that it doesn't get erased
-        con = sql2o.beginTransaction();
-
-        String sqlCreateTable = "CREATE TABLE IF NOT EXISTS todos (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), isCompleted BOOLEAN);";
-
-        con.createQuery(sqlCreateTable).executeUpdate();
+    public void setUp() throws Exception {
+        Sql2o sql2o = new Sql2o(TEST_DATASOURCE + ";INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "");
+        conn = sql2o.open();
+        client = new ApiClient("http://localhost:" + PORT);
+        gson = new Gson();
+        todoDao = new Sql2oTodoDao(sql2o);
     }
 
     @AfterEach
-    public void tearDown() {
-        // Close the connection after each test
-        if (con != null) {
-            con.close();
-        }
+    public void tearDown() throws Exception {
+        conn.close();
     }
 
-    // Functional test that proves that deletion happens and status code is returned
+    // Adding a To-do
     @Test
-    void testDeleteTodo() throws Exception {
+    void addingTodoReturnsCreatedStatus() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", "Test");
+        values.put("isCompleted", false);
 
-        // Delete the todo
-        URL url = new URL("http://localhost:4567/api/v1/todos/1");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("DELETE");
+        ApiResponse res = client.request("POST", "/api/v1/todos", gson.toJson(values));
 
-        int responseCode = connection.getResponseCode();
-        assertEquals(204, responseCode, "HTTP response code should be 204 for successful deletion.");
-
-        // Verify that the todo cannot be retrieved anymore
-        connection = (HttpURLConnection) new URL("http://localhost:4567/api/v1/todos/1").openConnection();
-        connection.setRequestMethod("GET");
-        assertEquals(404, connection.getResponseCode(), "HTTP response code should be 404 after the todo is deleted.");
+        assertEquals(201, res.getStatus());
     }
 
-    // Functional test that proves that creation happens and status code is returned
+
     @Test
-    void testAddTodo() throws Exception {
-        // URL for the POST request
-        HttpURLConnection connection = getHttpURLConnection();
+    public void todosCanBeAccessedById() throws Exception{
+        Todo todo = new Todo("test", false);
+        todoDao.add(todo);
 
-        // Assert the response code is 201 (Created)
-        assertEquals(201, connection.getResponseCode(), "HTTP response code should be 201 for successful creation");
+        ApiResponse res = client.request("GET", "/api/v1/todos/" + todo.getId());
+        Todo retrieved = gson.fromJson(res.getBody(), Todo.class);
 
-        // Read the response from the input stream
-        Gson gson = new Gson();
-        Todo responseTodo;
-        try (java.io.BufferedReader br = new java.io.BufferedReader(
-                new java.io.InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-            responseTodo = gson.fromJson(response.toString(), Todo.class);
-        }
-
-        // Verify the content of the response
-        assertEquals("New Todo", responseTodo.getName(), "The name of the returned todo should match the input.");
-        assertFalse(responseTodo.isCompleted(), "The completion status of the returned todo should be false.");
+        assertEquals(todo, retrieved);
     }
 
-    // Helper Function
-    private static HttpURLConnection getHttpURLConnection() throws IOException {
-        URL url = new URL("http://localhost:4567/api/v1/todos");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setDoOutput(true);
+    @Test
+    public void todoCanBeSuccessfullyDeleted () throws Exception{
+        Todo todo = new Todo("test", false);
+        todoDao.add(todo);
+        int id = todo.getId();
 
-        // create a new todo
-        String jsonInputString = "{\"name\": \"New Todo\", \"isCompleted\": false}";
+        ApiResponse res = client.request("DELETE", "/api/v1/todos/" + todo.getId());
 
-        // Send Json as POST request
-        try (OutputStream os = connection.getOutputStream()){
-            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-        return connection;
+        assertEquals(204, res.getStatus());
+        assertNull(todoDao.findByTodoId(id));
+    }
+
+    @Test
+    public void deletingToDoReturnsNoContentStatus() throws Exception{
+        Todo todo = new Todo("test", false);
+        todoDao.add(todo);
+
+        ApiResponse res = client.request("DELETE", "/api/v1/todos/" + todo.getId());
+
+        assertEquals(204, res.getStatus());
+    }
+
+    @Test
+    public void todoCanBySuccessfullyUpdated() throws Exception{
+        Todo todo = new Todo("test", false);
+        todoDao.add(todo);
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", "change");
+        values.put("is_completed", true);
+
+        ApiResponse res = client.request("PUT", "/api/v1/todos/" + todo.getId(), gson.toJson(values));
+        Todo updated = gson.fromJson(res.getBody(), Todo.class);
+
+        assertEquals("change", updated.getName());
+        assertTrue(updated.isCompleted());
+    }
+
+    @Test
+    public void updatingTodoReturnsSuccessfulStatus() throws Exception{
+        Todo todo = new Todo("test", false);
+        todoDao.add(todo);
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", "change");
+        values.put("is_completed", true);
+
+        ApiResponse res = client.request("PUT", "/api/v1/todos/" + todo.getId(), gson.toJson(values));
+
+        assertEquals(200, res.getStatus());
+    }
+
+    @Test
+    public void missingToDoReturns404NotFoundStatus() throws Exception{
+        ApiResponse res = client.request("GET", "/api/v1/todos/50");
+
+        assertEquals(404, res.getStatus());
     }
 }
+
+
+
