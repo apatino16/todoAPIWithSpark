@@ -13,16 +13,27 @@ import static spark.Spark.*;
 public class Api {
 
     public static void main(String[] args) {
+        String datasource = "jdbc:h2:~/todos.db";
+        if (args.length > 0) {
+            if (args.length != 2 ) {
+                System.out.println("java API <port> <datasource>");
+                System.exit(0);
+            }
+            port(Integer.parseInt(args[0]));
+            datasource = args[1];
+        }
 
         port(4567);
         staticFileLocation("/public");
-        Sql2o sql2o = new Sql2o("jdbc:h2:~/todos.db;INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "" );
-
-        // JSON transformation
-        Gson gson = new Gson();
+        Sql2o sql2o = new Sql2o(
+                String.format("%s;INIT=RUNSCRIPT from 'classpath:db/init.sql'", datasource)
+                ,"", "" );
 
         // Initialize DAO
         TodoDao todoDao = new Sql2oTodoDao(sql2o);
+
+        // JSON transformation
+        Gson gson = new Gson();
 
         // Default response type is JSON
         before("/api/v1/*", (req, res) -> res.type("application/json"));
