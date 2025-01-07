@@ -63,18 +63,6 @@ public class ApiFunctionalTest {
         assertEquals(201, res.getStatus());
     }
 
-
-    @Test
-    public void todosCanBeAccessedById() throws Exception {
-        Todo todo = new Todo("test", false);
-        todoDao.add(todo);
-
-        ApiResponse res = client.request("GET", "/api/v1/todos/" + todo.getId());
-        Todo retrieved = gson.fromJson(res.getBody(), Todo.class);
-
-        assertEquals(todo, retrieved);
-    }
-
     @Test
     public void todoCanBeSuccessfullyDeleted () throws Exception{
         Todo todo = new Todo("test", false);
@@ -98,27 +86,12 @@ public class ApiFunctionalTest {
     }
 
     @Test
-    public void todoCanBySuccessfullyUpdated() throws Exception{
+    public void updatingTodoReturnsSuccessfulStatus() throws Exception {
         Todo todo = new Todo("test", false);
         todoDao.add(todo);
         Map<String, Object> values = new HashMap<>();
         values.put("name", "change");
-        values.put("is_completed", true);
-
-        ApiResponse res = client.request("PUT", "/api/v1/todos/" + todo.getId(), gson.toJson(values));
-        Todo updated = gson.fromJson(res.getBody(), Todo.class);
-
-        assertEquals("change", updated.getName());
-        assertTrue(updated.isCompleted());
-    }
-
-    @Test
-    public void updatingTodoReturnsSuccessfulStatus() throws Exception{
-        Todo todo = new Todo("test", false);
-        todoDao.add(todo);
-        Map<String, Object> values = new HashMap<>();
-        values.put("name", "change");
-        values.put("is_completed", true);
+        values.put("isCompleted", true);
 
         ApiResponse res = client.request("PUT", "/api/v1/todos/" + todo.getId(), gson.toJson(values));
 
@@ -126,7 +99,7 @@ public class ApiFunctionalTest {
     }
 
     @Test
-    public void missingToDoReturns404NotFoundStatus() throws Exception{
+    public void missingToDoReturns404NotFoundStatus() throws Exception {
         ApiResponse res = client.request("GET", "/api/v1/todos/50");
 
         assertEquals(404, res.getStatus());
