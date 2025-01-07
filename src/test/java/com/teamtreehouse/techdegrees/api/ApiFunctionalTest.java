@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ApiFunctionalTest {
 
-    public static final String PORT = "4568";
+    public static final String PORT = "4567";
     public static final String TEST_DATASOURCE = "jdbc:h2:mem:testing";
     private Connection conn;
     private ApiClient client;
@@ -65,7 +65,7 @@ public class ApiFunctionalTest {
 
 
     @Test
-    public void todosCanBeAccessedById() throws Exception{
+    public void todosCanBeAccessedById() throws Exception {
         Todo todo = new Todo("test", false);
         todoDao.add(todo);
 
