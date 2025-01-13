@@ -23,10 +23,10 @@ public class Sql2oTodoDaoTest {
         Sql2o sql2o = new Sql2o(connectionString, null, null);
         dao = new Sql2oTodoDao(sql2o);
 
-        // Keep connection open through entire test so that it doesn't get erased
         con = sql2o.beginTransaction();
 
-        String sqlCreateTable = "CREATE TABLE IF NOT EXISTS todos (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), isCompleted BOOLEAN);";
+        String sqlCreateTable = "CREATE TABLE IF NOT EXISTS todos " +
+                "(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), isCompleted BOOLEAN);";
 
         con.createQuery(sqlCreateTable).executeUpdate();
     }

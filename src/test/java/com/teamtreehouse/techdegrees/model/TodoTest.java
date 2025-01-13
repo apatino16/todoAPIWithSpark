@@ -57,7 +57,7 @@ class TodoTest {
         assertFalse(todo.isCompleted(), "setCompleted should set the completion status correctly.");
     }
 
-    // Test that Todo model correctly implements equality checks
+    // Test that To-do model correctly implements equality checks
     @Test
     void testEqualsSameAttributesShouldReturnTrue() {
         Todo todo1 = new Todo("Test", true);

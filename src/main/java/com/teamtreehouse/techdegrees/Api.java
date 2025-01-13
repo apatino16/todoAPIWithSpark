@@ -1,6 +1,5 @@
 package com.teamtreehouse.techdegrees;
 
-
 import com.google.gson.Gson;
 import com.teamtreehouse.techdegrees.dao.Sql2oTodoDao;
 import com.teamtreehouse.techdegrees.dao.TodoDao;
@@ -44,28 +43,28 @@ public class Api {
     }
 
     private static void routes(TodoDao todoDao, Gson gson) {
-        // Route that fetches all todos from the database
+        // Route that fetches all to-dos from the database
         get("/api/v1/todos", "application/json", (req, res) -> {
             try {
                 return todoDao.findAll();
             } catch (Exception e) {
                 res.status(500); // Internal Server Error
                 res.type("application/json");
-                return gson.toJson(new ErrorMessage("Failed to fetch todos: " + e.getMessage()));
+                return gson.toJson(new ErrorMessage("Failed to fetch to-dos: " + e.getMessage()));
             }
         }, gson::toJson);
 
-        // Route to add new todo to the database
+        // Route to add new to-do to the database
         post("/api/v1/todos", "application/json", (req, res) -> {
             Todo todo = gson.fromJson(req.body(), Todo.class);
             todoDao.add(todo);
             res.status(201); // Created
             return todo;
-        }, gson::toJson); // method reference
+        }, gson::toJson);
 
         after((req, res) -> res.type("application/json"));
 
-        // Updating existing todo
+        // Updating existing to-do
         put("/api/v1/todos/:id", "application/json", (req, res) -> {
             try {
                 int id = Integer.parseInt(req.params(":id"));
@@ -76,10 +75,10 @@ public class Api {
 
                 if (existingTodo == null) {
                     res.status(404); // Not Found
-                    return gson.toJson("Todo not found");
+                    return gson.toJson("To-do not found");
                 }
 
-                // Update todo with new values
+                // Update to-do with new values
                 if (updatedTodo.getName() != null) existingTodo.setName(updatedTodo.getName());
                 if (updatedTodo.isCompleted() != existingTodo.isCompleted())
                     existingTodo.setCompleted(updatedTodo.isCompleted());
@@ -93,7 +92,7 @@ public class Api {
             }
         }, gson::toJson);
 
-        // Route to delete a todo from the database
+        // Route to delete a to-do from the database
         delete("/api/v1/todos/:id", "application/json", (req, res) -> {
             int id = Integer.parseInt(req.params(":id"));
             Todo todo = todoDao.findByTodoId(id);
@@ -104,7 +103,7 @@ public class Api {
                 return "";
             } else {
                 res.status(404); // Not Found
-                return gson.toJson("Todo not found");
+                return gson.toJson("To-do not found");
             }
         });
     }

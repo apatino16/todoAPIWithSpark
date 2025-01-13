@@ -18,10 +18,10 @@ public class Sql2oTodoDao implements TodoDao {
 
     @Override
     public void add(Todo todo) throws DaoException {
-        // SQL query for inserting a new todo into the database
+        // SQL query for inserting a new to-do into the database
         String sql = "INSERT INTO todos(name, isCompleted) VALUES (:name, :isCompleted)";
 
-        // Try-with-resources: open a new database connection and automatically closes the connection after execution
+        // Open a new database connection and automatically closes the connection after execution
         try (Connection con = sql2o.open()) {
             Integer id = (Integer) con.createQuery(sql, true)
                     .addParameter("name", todo.getName())
@@ -40,7 +40,7 @@ public class Sql2oTodoDao implements TodoDao {
 
     // Update a to-do
     @Override
-    public void updateTodo(int id, String name, boolean isCompleted) throws DaoException {
+    public void updateTodo(int id, String name, boolean isCompleted) {
         String sql = "UPDATE todos SET name = :name, isCompleted = :isCompleted WHERE id = :id";
         try (Connection con = sql2o.open()) {
             con.createQuery(sql)
